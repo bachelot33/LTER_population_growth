@@ -85,7 +85,7 @@ newdat <- dat[(dat$sppcode%in%drop_rare$sppcode)==FALSE,]
   
  ## if abudance_obs is structured, sum over structure
   if (metadat$structured_data=="yes")
-  {dat<- dat %>%
+  {newdat<- newdat %>%
     group_by(year,month,day,sppcode,ran_effect) %>%
     summarize(abundance_observation = sum(abundance_observation))}
   
