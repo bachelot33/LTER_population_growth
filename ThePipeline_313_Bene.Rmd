@@ -327,10 +327,10 @@ for (s in 1:length(spp_names)){
     is.flat<-c() #to flag horizontal GAM
     df <- Xp%*%coef(gam_fit_i)             ## ith smooth derivative
     df.sd <- rowSums(Xp%*%gam_fit_i$Vp*Xp)^.5 ## get standard error
-    if(length((df-2*df.sd)[(df-2*df.sd)<0] & (df+2*df.sd)[(df+2*df.sd)>0])>=95)
+    if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])>=95)
     {gam_type[i,s]<-0}
    
-    if(length((df-2*df.sd)[(df-2*df.sd)<0] & (df+2*df.sd)[(df+2*df.sd)>0])<95)
+    if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])<95)
     {
     newd <- data.frame(species= species.mesh, SPEI = df)
     X2 <- predict(gam_fit_i,newd,type="lpmatrix")
@@ -340,7 +340,7 @@ for (s in 1:length(spp_names)){
     Xp2 <- (X3-X2)/eps 
     df <- Xp2%*%coef(gam_fit_i)             ## ith smooth derivative
     df.sd <- rowSums(Xp2%*%gam_fit_i$Vp*Xp2)^.5 ## get standard error
-     if(length((df-2*df.sd)[(df-2*df.sd)<0] & (df+2*df.sd)[(df+2*df.sd)>0])>=95)
+     if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])>=95)
      {gam_type[i,s]<-1}
     }
   
