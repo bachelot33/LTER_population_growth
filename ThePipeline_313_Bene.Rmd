@@ -273,16 +273,16 @@ Not sure how I feel about subsetting species with significant gams. Here I will 
 ```{r posterior_gams}
 r_posterior <- rstan::extract(abund_fit,"r")[[1]][,(study_years[2:length(study_years)]-study_years[1:(length(study_years)-1)])==1,]
 N_draws <- 100
-gam_color<-c("white","blue","red")
+gam_color<-c(NA,"blue","red","green")
 ## spei data sets for prediction
 SPEI_allyrs = tibble(SPEI = spei12_pred$fitted[seq(from=12,to=length(spei12_pred$fitted),by=12)],
                    year = (min(climate_pred$year):max(climate_pred$year))[-1])
 SPEI_mean = data.frame(mean(SPEI_allyrs$SPEI));names(SPEI_mean)[1]="SPEI"
 ## create df to store posterior V's
 V <- matrix(NA,nrow = N_draws, ncol = length(spp_names))
-gam_type<-matrix(2,nrow=N_draws, ncol=length(spp_names)) #vector to store shape of gams: 0 horizontal, 1 linear, 2 non-linear
+gam_type<-matrix(2,nrow=N_draws, ncol=length(spp_names)) #vector to store shape of gams: 0 horizontal, 1 linear, 2 non-linear, 3: non-linear with changes in concavity
   
-par(mfrow=c(3,3),mar=c(5,4,1,1))
+#par(mfrow=c(3,3),mar=c(5,4,1,1))
 ## loop over species with significant mean gams
 for (s in 1:length(spp_names)){
   ## here is the posterior mean fit (red is significant)
@@ -327,10 +327,10 @@ for (s in 1:length(spp_names)){
     is.flat<-c() #to flag horizontal GAM
     df <- Xp%*%coef(gam_fit_i)             ## ith smooth derivative
     df.sd <- rowSums(Xp%*%gam_fit_i$Vp*Xp)^.5 ## get standard error
-    if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])>=95)
+    if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])==100) #maybe 100
     {gam_type[i,s]<-0}
    
-    if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])<95)
+    if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])<100) 
     {
     newd <- data.frame(species= species.mesh, SPEI = df)
     X2 <- predict(gam_fit_i,newd,type="lpmatrix")
@@ -340,14 +340,18 @@ for (s in 1:length(spp_names)){
     Xp2 <- (X3-X2)/eps 
     df <- Xp2%*%coef(gam_fit_i)             ## ith smooth derivative
     df.sd <- rowSums(Xp2%*%gam_fit_i$Vp*Xp2)^.5 ## get standard error
-     if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])>=95)
+     if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])==100)
      {gam_type[i,s]<-1}
+      if(length(((df-2*df.sd)*(df+2*df.sd))[((df-2*df.sd)*(df+2*df.sd))<0])<100 & length((df-2*df.sd)[(df-2*df.sd)>0])!=0 & length((df+2*df.sd)[(df+2*df.sd)<0])!=0)
+     {gam_type[i,s]<-3}
     }
   
-  ## Plot. Two options: 1) Plot everything 2) Only plot non-linear in blue and linear in red.
+  ## Plot. Two options: 1) Plot everything 2) Only plot non-linear in blue, linear in red, non-linear with changes in concavity in green.
   preds<-predict(gam_fit_i, type="terms", newdata=SPEI.seq,se.fit=TRUE)
+  
   #lines(SPEI.seq$SPEI,preds$fit,type="l",col=alpha(ifelse(summary(gam_fit)$s.table[4]<0.1,"red","black"),0.1))
   #points(r_clim_i$SPEI[r_clim_i$species==spp_names[s]],r_clim_i$r[r_clim_i$species==spp_names[s]],pch=".",cex=3,col=alpha("grey40",0.1))
+  
   lines(SPEI.seq$SPEI,preds$fit,type="l",col=gam_color[gam_type[i,s]+1])
   points(r_clim_i$SPEI[r_clim_i$species==spp_names[s]],
          r_clim_i$r[r_clim_i$species==spp_names[s]],pch=".",cex=3,col=gam_color[gam_type[i,s]+1])
@@ -358,7 +362,6 @@ for (s in 1:length(spp_names)){
   points(r_clim$SPEI[r_clim$species==spp_names[s]],r_clim$r[r_clim$species==spp_names[s]],
        pch=16,cex=2)
 }
-
 ```
 
 Here are the posterior distributions of the climate variability effects based on the entire climate record 1915-2018. Peaks at zero correspond to linear gams. 
@@ -377,7 +380,7 @@ for (s in 1:length(spp_names)){
 #Summary statistics
 V_summary<-c()
 for (s in 1:length(spp_names))
-{V_summary<-rbind(V_summary,c(spp_names[s],summary(factor(gam_type[,s],levels=c(0,1,2)))))}
+{V_summary<-rbind(V_summary,c(spp_names[s],summary(factor(gam_type[,s],levels=c(0,1,2,3)))))}
 V_summary
 ```
 
