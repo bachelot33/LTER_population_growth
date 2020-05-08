@@ -25,7 +25,7 @@ for(i in 1:n)
 {
 mu[i]=exp(a[year[i],sp[i]]+b[rep[i]]);
 }
-alpha=mu .*mu/sig;
+alpha=mu .* mu/sig;
 beta=mu/sig;
 }
 
@@ -51,7 +51,7 @@ for(j in 1:(nyear-1))
 {
   for(k in 1:nsp)
   {
-  r[j,k]=log(exp(a[j+1,k])/exp(a[j,k]));
+  r[j,k]=a[j+1,k]-a[j,k];
   }
 }
 }
