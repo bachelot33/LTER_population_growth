@@ -46,7 +46,7 @@ for(j in 1:(nyear-1))
 {
   for(k in 1:nsp)
   {
-  r[j,k]=log(inv_logit(a[j+1,k])/inv_logit(a[j,k]));
+  r[j,k]=log(inv_logit(a[j+1,k]))-log(inv_logit(a[j,k]));
   }
 }
 }
