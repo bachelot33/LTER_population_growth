@@ -31,7 +31,7 @@ beta=mu/sig;
 
 model {
 
-to_vector(a)~normal(0,100);
+to_vector(a)~cauchy(0,2.5);
 sigb~gamma(100,100);
 sig~gamma(100,100);
 to_vector(b)~normal(0,sigb);
